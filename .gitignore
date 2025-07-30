@@ -1,1 +1,3 @@
 env_IRIS_SPECIES/*
+IRIS_SPECIES/data/*.zip
+IRIS_SPECIES/data/*.sqlite
