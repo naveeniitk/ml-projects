@@ -73,3 +73,22 @@ The dataset contains both categorical and numerical features:
 | Random Forest       | 0.81+              |
 
 ---
+
+## Handling Class Imbalance with SMOTE
+
+The dataset suffers from class imbalance (more "No" churns than "Yes"). To address this, **SMOTE (Synthetic Minority Oversampling Technique)** is applied to the training set:
+
+```python
+from imblearn.over_sampling import SMOTE
+```
+
+## SMOTE Oversampling
+
+The Telco Churn dataset contains a significant class imbalance: the number of customers who do **not** churn ("No") is much higher than those who do ("Yes"). This imbalance can lead to models that perform well on accuracy but fail to correctly predict churners, resulting in poor recall.
+
+### Outcome
+
+- **Increased recall** for the minority class (churned customers)
+- **Better balance** in model performance across both classes
+
+> SMOTE was applied **only to the training set**, ensuring no information leakage into the test set.

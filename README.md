@@ -29,4 +29,7 @@ Both implementations are validated against **Scikit-learn's** `LinearRegression`
 
 ## Telco Customer Churn Prediction
 This project predicts customer churn for a telecommunications company using supervised machine learning models. The objective is to identify customers likely to stop using the service based on their demographics and usage behavior.
+
+Used SMOTE as the Telco Churn dataset contains a significant class imbalance: the number of customers who do **not** churn ("No") is much higher than those who do ("Yes"). This imbalance can lead to models that perform well on accuracy but fail to correctly predict churners, resulting in poor recall.
+
 ---
