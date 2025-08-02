@@ -25,3 +25,8 @@ Where:
 This method computes exact weights without iterations and is suitable for smaller datasets where matrix inversion is computationally feasible.
 
 Both implementations are validated against **Scikit-learn's** `LinearRegression` for correctness.
+
+
+## Telco Customer Churn Prediction
+This project predicts customer churn for a telecommunications company using supervised machine learning models. The objective is to identify customers likely to stop using the service based on their demographics and usage behavior.
+---
