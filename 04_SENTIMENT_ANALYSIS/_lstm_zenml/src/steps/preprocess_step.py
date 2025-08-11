@@ -19,13 +19,11 @@ def preprocess_step(dataframe: pandas.DataFrame) -> Tuple[
 ]:
     logging.info(f"preprocessing started for dataframe with shape: {dataframe.shape}")
 
-    cleaned_data: Tuple[
-        Annotated[pandas.DataFrame, "tokenized_features"],
-        Annotated[pandas.Series, "tokenized_labels"],
-    ] = clean_step(dataframe)
+    cleaned_data: Tuple = clean_step(dataframe)
+    logging.info(f"Cleaning: {cleaned_data}") 
 
-    features: numpy.ndarray = cleaned_data["tokenized_features"]
-    labels: numpy.ndarray = cleaned_data["tokenized_labels"]
+    features: numpy.ndarray = cleaned_data[0] #["tokenized_features"]
+    labels: numpy.ndarray = cleaned_data[1] #["tokenized_labels"]
     
     logging.info("Embedding features using vocabulary building...")
     embedded_features: numpy.ndarray = embedding_using_vocabulary_building(features)

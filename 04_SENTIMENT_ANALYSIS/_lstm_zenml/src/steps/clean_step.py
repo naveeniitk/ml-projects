@@ -52,9 +52,9 @@ def clean_string(text: str) -> str:
     return text_lemmatization
 
 
-def tokenize_string(text: str) -> numpy.ndarray:
-    splitted_text = text.split(" ")
-    final_data = [token for token in splitted_text if len(token) > 1]
+def tokenize_string(text: numpy.ndarray) -> numpy.ndarray:
+    # splitted_text: numpy.ndarray = text.split(" ")
+    final_data = [token for token in text if len(token) > 1]
     return final_data
 
 
@@ -68,7 +68,7 @@ def clean_labels(data: pandas.Series) -> pandas.Series:
 
 
 def tokenize_labels(labels: pandas.Series) -> pandas.Series:
-    new_labels: pandas.Series = labels.y.map({"positive": 1, "negative": 0})
+    new_labels: pandas.Series = labels.map({"positive": 1, "negative": 0})
     return pandas.Series.copy(new_labels)
 
 
@@ -85,6 +85,7 @@ def clean_step(
 
     logging.info("Cleaning features...")
     cleaned_data: pandas.DataFrame = clean_features(data)
+    logging.info(f"cleaned_data: {cleaned_data.head()}")
 
     logging.info("Tokenizing features...")
     tokenized_features: pandas.DataFrame = cleaned_data.apply(tokenize_string)
