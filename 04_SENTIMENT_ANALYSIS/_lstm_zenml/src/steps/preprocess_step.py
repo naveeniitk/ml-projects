@@ -5,9 +5,16 @@ from zenml.steps import step
 from typing import Tuple, List, Dict
 from typing import Annotated
 from sklearn import model_selection
-from config.params import TEST_SIZE, RANDOM_STATE
+from config.params import (
+    TEST_SIZE,
+    RANDOM_STATE,
+    SENTENCE_TRANSFORMER_EMBEDDING_SIZE,
+    EMBEDDING_MODEL_NAME,
+)
 from steps.clean_step import clean_step
-from steps.embedding_step import embedding_using_vocabulary_building, encode_vocabulary_embedding
+
+# from steps.embedding_step import embedding_using_vocabulary_building, encode_vocabulary_embedding
+from steps.embedding_step import embedding_features_using_sentence_transformer
 
 
 @step(enable_cache=False)
@@ -19,28 +26,36 @@ def preprocess_step(dataframe: pandas.DataFrame) -> Tuple[
 ]:
     logging.info(f"preprocessing started for dataframe with shape: {dataframe.shape}")
     cleaned_data: Tuple = clean_step(dataframe)
-    
-    features: pandas.DataFrame = cleaned_data[0] #["tokenized_features"]
+
+    features: pandas.DataFrame = cleaned_data[0]  # ["tokenized_features"]
     logging.info(f"Features: {features[:5]}")
+
+    embedded_labels: numpy.ndarray = cleaned_data[1]  # ["tokenized_labels"]
+    logging.info(f"Labels: {embedded_labels[:5]}")
+
+    # embedding_mapping: Dict[str, int] = embedding_using_vocabulary_building(features)
+    # # logging.info(f"Embedding mapping: {embedding_mapping}")
+
+    # embedded_features: numpy.ndarray = encode_vocabulary_embedding(
+    #     tokenized_texts=features,
+    #     word2idx=embedding_mapping,
+    # )
+
+    logging.info( f"word embedding of features using : {EMBEDDING_MODEL_NAME}" )
     
-    labels: numpy.ndarray = cleaned_data[1] #["tokenized_labels"]
-    
-    logging.info("Embedding features using vocabulary building...")
-    embedding_mapping: Dict[str, int] = embedding_using_vocabulary_building(features)
-    
-    # logging.info(f"Embedding mapping: {embedding_mapping}")
-    
-    embedded_features: numpy.ndarray = encode_vocabulary_embedding(
-        tokenized_texts=features,
-        word2idx=embedding_mapping,
+    embedded_features: numpy.ndarray = embedding_features_using_sentence_transformer(
+        features=features,
+        max_embedding_size=SENTENCE_TRANSFORMER_EMBEDDING_SIZE,
     )
+    logging.info(f"embedded_features: {embedded_features[:5]}")
+    
 
     X_train, y_train, X_test, y_test = model_selection.train_test_split(
         embedded_features,
-        labels,
+        embedded_labels,
         test_size=TEST_SIZE,
         random_state=RANDOM_STATE,
-        stratify=labels,
+        stratify=embedded_labels,
     )
 
     logging.info("Data preprocessing completed successfully.")

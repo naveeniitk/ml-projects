@@ -4,8 +4,11 @@ from config.params import DATA_PATH
 from steps.importer_step import importer_step
 from steps.preprocess_step import preprocess_step
 from steps.trainer_step import trainer_step
+from config.set_environment import set_ENVIRONMENT
 
 if __name__ == "__main__":
+
+    set_ENVIRONMENT()
 
     # =====================================================================
     logging.info("Starting the importer step...")
@@ -34,8 +37,8 @@ if __name__ == "__main__":
     logging.info(f"X_train shape: {X_train.shape}, y_train shape: {y_train.shape}")
     logging.info(f"X_test shape: {X_test.shape}, y_test shape: {y_test.shape}")
 
-    logging.info(f"X_train [0]: {X_train[0]}")
-    logging.info(f"y_train: {y_train.iloc[0]}")
+    logging.info(f"X_train [0] shape: {X_train[0].shape}")
+    logging.info(f"y_train [0] : {y_train.iloc[0]}")
 
     # =====================================================================
     logging.info("Starting the training step...")

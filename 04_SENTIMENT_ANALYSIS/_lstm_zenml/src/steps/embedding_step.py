@@ -3,7 +3,33 @@ import numpy
 import pandas
 from zenml.steps import step
 from typing import List, Dict, Tuple, Annotated
-from config.params import MAX_VOCAB_SIZE, MAX_LENGTH
+from config.params import (
+    MAX_VOCAB_SIZE,
+    MAX_LENGTH,
+    SENTENCE_TRANSFORMER_EMBEDDING_SIZE,
+    EMBEDDING_MODEL_NAME,
+)
+import transformers
+from sentence_transformers import SentenceTransformer
+
+
+def embedding_features_using_sentence_transformer(
+    features: pandas.DataFrame,
+    max_embedding_size: int = SENTENCE_TRANSFORMER_EMBEDDING_SIZE,
+) -> Tuple[
+    Annotated[numpy.ndarray, "embedded_features"],
+    Annotated[numpy.ndarray, "embedded_labels"],
+]:
+    logging.info(f"truncate dimension: {max_embedding_size}")
+    truncate_dimension = max_embedding_size if max_embedding_size else MAX_LENGTH
+    sentence_transformer_embedding = SentenceTransformer(EMBEDDING_MODEL_NAME)
+
+    features_embeddings = sentence_transformer_embedding.encode(
+        features.values, truncate_dim=truncate_dimension
+    )
+
+    logging.info(f"features_embeddings shape: {features_embeddings.shape}")
+    return features_embeddings
 
 
 def embedding_using_vocabulary_building(
@@ -63,7 +89,7 @@ def encode_vocabulary_embedding(
 
     logging.info("Encoding tokenized texts into sequences of indices...")
     encoded_sequences: numpy.ndarray = []
-    
+
     logging.info(f"Tokenized texts type: {type(tokenized_texts)}")
 
     for tokens in tokenized_texts:
@@ -74,4 +100,3 @@ def encode_vocabulary_embedding(
         encoded_sequences.append(sequence)
 
     return numpy.asarray(encoded_sequences, dtype=numpy.int32)
-

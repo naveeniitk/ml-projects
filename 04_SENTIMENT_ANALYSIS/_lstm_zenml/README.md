@@ -8,3 +8,6 @@ How to run:
 2. zenml init
 3. (optional) start mlflow server locally
 4. python2 src/run_pipeline.py
+
+
+![alt text](images/image.png)
