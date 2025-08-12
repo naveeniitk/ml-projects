@@ -67,9 +67,9 @@ def clean_labels(data: pandas.Series) -> pandas.Series:
     return pandas.Series.copy(data)
 
 
-def tokenize_labels(labels: pandas.Series) -> pandas.Series:
-    new_labels: pandas.Series = labels.map({"positive": 1, "negative": 0})
-    return pandas.Series.copy(new_labels)
+def tokenize_labels(labels: pandas.Series) -> numpy.ndarray:
+    new_labels: numpy.ndarray = labels.map({"positive": 1, "negative": 0})
+    return new_labels
 
 
 @step(enable_cache=False)
@@ -77,7 +77,7 @@ def clean_step(
     dataframe: pandas.DataFrame,
 ) -> Tuple[
     Annotated[pandas.DataFrame, "cleaned_features"],
-    Annotated[pandas.Series, "cleaned_labels"],
+    Annotated[numpy.ndarray, "cleaned_labels"],
 ]:
     logging.info(f"Cleaning started for dataframe with shape: {dataframe.shape}")
     data: pandas.DataFrame = dataframe["review"]

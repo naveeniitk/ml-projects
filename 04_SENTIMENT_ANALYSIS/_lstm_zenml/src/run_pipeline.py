@@ -17,7 +17,7 @@ if __name__ == "__main__":
 
     logging.info("Starting the Preprocessor step...")
     try:
-        preprocessed_dataframe = preprocess_step(imported_dataframe)
+        preprocessed_data = preprocess_step(imported_dataframe)
         logging.info("Data preprocessed successfully.")
     except Exception as e:
         logging.error(f"An error occurred during the Preprocessor step: {e}")

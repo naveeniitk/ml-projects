@@ -1,4 +1,6 @@
+import logging
 import numpy
+import pandas
 from zenml.steps import step
 from typing import List, Dict, Tuple, Annotated
 from config.params import MAX_VOCAB_SIZE, MAX_LENGTH
@@ -7,7 +9,6 @@ from config.params import MAX_VOCAB_SIZE, MAX_LENGTH
 def embedding_using_vocabulary_building(
     tokenized_features: List[str],
     max_vocab_size: int = MAX_VOCAB_SIZE,
-    max_length: int = MAX_LENGTH,
 ) -> Dict[str, int]:
     """
     Embeds the input texts using a vocabulary built from the texts.
@@ -44,7 +45,7 @@ def embedding_using_vocabulary_building(
 
 
 def encode_vocabulary_embedding(
-    tokenized_texts: List[List[str]],
+    tokenized_texts: Dict[str, int],
     word2idx: Dict[str, int],
     max_seq_len: int = MAX_LENGTH,
 ) -> numpy.ndarray:
@@ -59,7 +60,12 @@ def encode_vocabulary_embedding(
     Returns:
         Numpy array of shape (num_texts, max_seq_len) with token indices.
     """
-    encoded_sequences = []
+
+    logging.info("Encoding tokenized texts into sequences of indices...")
+    encoded_sequences: numpy.ndarray = []
+    
+    logging.info(f"Tokenized texts type: {type(tokenized_texts)}")
+
     for tokens in tokenized_texts:
         sequence = [
             word2idx.get(token, word2idx["<unk>"]) for token in tokens[:max_seq_len]
@@ -67,4 +73,5 @@ def encode_vocabulary_embedding(
         sequence += [word2idx["<pad>"]] * (max_seq_len - len(sequence))
         encoded_sequences.append(sequence)
 
-    return numpy.ndarray(encoded_sequences)
+    return numpy.asarray(encoded_sequences, dtype=numpy.int32)
+

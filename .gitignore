@@ -14,3 +14,5 @@ _env_04_SENTIMENT_ANALYSIS/*
 04_SENTIMENT_ANALYSIS/data/TWEETS/*
 
 04_SENTIMENT_ANALYSIS/_lstm_zenml/sentiment-dataset/*
+04_SENTIMENT_ANALYSIS/_lstm_zenml/src/steps/__pycache__/*
+04_SENTIMENT_ANALYSIS/_lstm_zenml/src/config/__pycache__/*
