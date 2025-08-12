@@ -28,12 +28,19 @@ if __name__ == "__main__":
     logging.info("Preprocessor step completed successfully.")
 
     # =====================================================================
+    logging.info("Training and testing data split successfully.")
     X_train, X_test, y_train, y_test = preprocessed_data
+
+    logging.info(f"X_train shape: {X_train.shape}, y_train shape: {y_train.shape}")
+    logging.info(f"X_test shape: {X_test.shape}, y_test shape: {y_test.shape}")
+
+    logging.info(f"X_train [0]: {X_train[0]}")
+    logging.info(f"y_train: {y_train.iloc[0]}")
 
     # =====================================================================
     logging.info("Starting the training step...")
     try:
-        trained_lstm_model = trainer_step(X_train, y_train)
+        lstm_model = trainer_step(X_train, y_train)
         logging.info("LSTM Model trained successfully.")
     except Exception as e:
         logging.error(f"An error occurred during the training step: {e}")
