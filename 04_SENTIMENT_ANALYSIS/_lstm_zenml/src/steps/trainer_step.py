@@ -9,7 +9,7 @@ from models.lstm import LstmClassifier
 def trainer_step(
     X_train: numpy.ndarray,
     y_train: pandas.Series,
-) -> None:
+) -> LstmClassifier:
 
     logging.info("Initializing the LSTM model...")
     lstm_model = LstmClassifier()
@@ -17,7 +17,6 @@ def trainer_step(
     logging.info(f"Training started for X_train with shape: {X_train.shape}")
     logging.info(f"Training started for y_train with shape: {y_train.shape}")
         
-    
     logging.info("Training completed successfully.")
 
-    return None
+    return lstm_model

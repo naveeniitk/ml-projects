@@ -1,6 +1,7 @@
-import logging
+import torch
 import pandas
-from config.params import DATA_PATH
+import logging
+from config.params import DATA_PATH, DEVICE
 from steps.importer_step import importer_step
 from steps.preprocess_step import preprocess_step
 from steps.trainer_step import trainer_step
@@ -8,7 +9,17 @@ from config.set_environment import set_ENVIRONMENT
 
 if __name__ == "__main__":
 
+    logging.info("Setting environment variables...")
     set_ENVIRONMENT()
+
+    # =====================================================================
+    logging.info("Setting Device to compute...")
+    if torch.cuda.is_available:
+        logging.info("CUDA available to compute...")
+        DEVICE = "cuda"
+    elif torch.backends.mps.is_available:
+        logging.info("MPS available to compute...")
+        DEVICE = "mps"
 
     # =====================================================================
     logging.info("Starting the importer step...")
@@ -39,7 +50,7 @@ if __name__ == "__main__":
 
     logging.info(f"X_train [0] shape: {X_train[0].shape}")
     logging.info(f"y_train [0] : {y_train.iloc[0]}")
-
+    
     # =====================================================================
     logging.info("Starting the training step...")
     try:

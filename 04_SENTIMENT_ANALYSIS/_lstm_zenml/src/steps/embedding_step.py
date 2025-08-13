@@ -8,6 +8,7 @@ from config.params import (
     MAX_LENGTH,
     SENTENCE_TRANSFORMER_EMBEDDING_SIZE,
     EMBEDDING_MODEL_NAME,
+    DEVICE,
 )
 import transformers
 from sentence_transformers import SentenceTransformer
@@ -24,8 +25,11 @@ def embedding_features_using_sentence_transformer(
     truncate_dimension = max_embedding_size if max_embedding_size else MAX_LENGTH
     sentence_transformer_embedding = SentenceTransformer(EMBEDDING_MODEL_NAME)
 
+    logging.info(f"Computing features embedding on Device: {DEVICE}")
     features_embeddings = sentence_transformer_embedding.encode(
-        features.values, truncate_dim=truncate_dimension
+        features.values, 
+        truncate_dim=truncate_dimension,
+        device=DEVICE,
     )
 
     logging.info(f"features_embeddings shape: {features_embeddings.shape}")
