@@ -1,33 +1,33 @@
 import numpy
 import pandas
 import logging
+from typing import Any
 
-
-def sigmoid_function(x: numpy.float32) -> numpy.float32:
+def sigmoid_function(x: Any) -> Any:
     """
     Description of sigmoid_function
 
     Args:
-        x (numpy.float32):
+        x (Any):
 
     Returns:
-        numpy.float32
+        Any
 
     """
     logging.info(f"using Sigmoid function for [{x}]")
-    return 1 / (1 - numpy.exp(-x))
+    return 1 / (1 + numpy.exp(-x))
 
 
-def stable_sigmoid_function(x: numpy.float32) -> numpy.float32:
+def stable_sigmoid_function(x: Any) -> Any:
     """
     Description of stable_sigmoid_function: as for large positive and negative
     values (exp(-x)) can overflow
 
     Args:
-        x (numpy.float32):
+        x (Any):
 
     Returns:
-        numpy.float32
+        Any
 
     """
     return numpy.where(
@@ -35,49 +35,49 @@ def stable_sigmoid_function(x: numpy.float32) -> numpy.float32:
     )
 
 
-def d_sigmoid_function(x: numpy.float32) -> numpy.float32:
+def d_sigmoid_function(x: Any) -> Any:
     """
     d_sigmoid_function: derivative of sigma(x)
 
     d(sigma)/dx = (sigma(x)) * (1 - sigma(x))
 
     Args:
-        x (numpy.float32):
+        x (Any):
 
     Returns:
-        numpy.float32
+        Any
 
     """
     sigma_x = sigmoid_function(x)
     return sigma_x * (1 - sigma_x)
 
 
-def tanh_function(x: numpy.float32) -> numpy.float32:
+def tanh_function(x: Any) -> Any:
     """
     Description of tanh_function
 
     Args:
-        x (numpy.float32):
+        x (Any):
 
     Returns:
-        numpy.float32
+        Any
 
     """
     logging.info(f"using tanh function for [{x}]")
     return 2 / (1 - numpy.exp(-(2 * x)))
 
 
-def d_tanh_function(x: numpy.float32) -> numpy.float32:
+def d_tanh_function(x: Any) -> Any:
     """
     d_tanh_function: derivative of tanh(x)
 
     d (tanh)/dx = 1 - (tanh(x) * tanh(x))
 
     Args:
-        x (numpy.float32):
+        x (Any):
 
     Returns:
-        numpy.float32
+        Any
 
     """
     tanhx = tanh_function(x)
