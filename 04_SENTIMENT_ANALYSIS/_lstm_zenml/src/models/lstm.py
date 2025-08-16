@@ -2,7 +2,12 @@ import torch
 import numpy
 import torch.nn as torchNeuralNetwork
 from typing import Tuple, Dict, Any, Annotated
-from utils.utilities import sigmoid_function, tanh_function
+from utils.utilities import (
+    sigmoid_function,
+    tanh_function,
+    d_tanh_function,
+    d_sigmoid_function,
+)
 
 
 class LstmClassifier(torchNeuralNetwork.Module):
@@ -27,6 +32,9 @@ class LstmClassifier(torchNeuralNetwork.Module):
         # *args: Tuple[Any],
         # **kwargs: Dict[str, Any]
     ):
+        # inherit methods from torchNeuralNetwork.Module
+        super().__init__()
+
         """
         Description of __init__
 
@@ -63,9 +71,9 @@ class LstmClassifier(torchNeuralNetwork.Module):
         self.b = numpy.zeros(4 * hidden_size)
 
         # derivatives of Wx, Wh, b
-        derivative_Wx = numpy.zeros_like(self.Wx)
-        derivative_Wh = numpy.zeros_like(self.Wh)
-        derivative_b = numpy.zeros_like(self.b)
+        self.derivative_Wx = numpy.zeros_like(self.Wx)
+        self.derivative_Wh = numpy.zeros_like(self.Wh)
+        self.derivative_b = numpy.zeros_like(self.b)
 
     def init_lstm_state(self, batch_size: int) -> Tuple[numpy.ndarray, numpy.ndarray]:
         """
@@ -141,3 +149,151 @@ class LstmClassifier(torchNeuralNetwork.Module):
         )
 
         return new_hidden_state, new_cell_state, state_cache
+
+    def forward(
+        self,
+        X: numpy.ndarray,
+        hidden_state_0: numpy.ndarray = None,
+        cell_state_0: numpy.ndarray = None,
+    ) -> Tuple[
+        Annotated[numpy.ndarray, "final_hidden_state"],
+        Annotated[numpy.ndarray, "final_cell_state"],
+        Annotated[numpy.ndarray, "final_cache_state"],
+        Tuple[
+            Annotated[numpy.ndarray, "hidden_state_0"],
+            Annotated[numpy.ndarray, "cell_state_0"],
+        ],
+    ]:
+        """
+        forward process using forward
+
+        Args:
+            self (undefined):
+            X (numpy.ndarray):
+            hidden_state_0 (numpy.ndarray|None=None):
+            cell_state_0 (numpy.ndarray|None=None):
+
+        Returns:
+            Tuple[        Annotated[numpy.ndarray, "final_hidden_state"],        Annotated[numpy.ndarray, "final_cell_state"],        Annotated[numpy.ndarray, "final_cache_state"],        Tuple[            Annotated[numpy.ndarray, "hidden_state_0"],            Annotated[numpy.ndarray, "cell_state_0"],        ],    ]
+
+        """
+        # T: number_of_time_steps
+        T, batch, _ = X.shape
+
+        if hidden_state_0 is None or cell_state_0 is None:
+            hidden_state_0, cell_state_0 = self.init_lstm_state(batch_size=batch)
+
+        final_hidden_state = numpy.zeros((T, batch, self.hidden_size))
+        final_cell_state = numpy.zeros((T, batch, self.hidden_size))
+        final_cache_state = [None] * T
+
+        prev_hidden_state, prev_cell_state = hidden_state_0, cell_state_0
+
+        for t in range(T):
+            current_input_x_t = X[t]
+            new_hidden_state, new_cell_state, new_state_cache = self.forward_step(
+                input_data=current_input_x_t,
+                prev_hidden_state=prev_hidden_state,
+                prev_cell_state=prev_cell_state,
+            )
+
+            final_hidden_state[t] = new_hidden_state
+            final_cell_state[t] = new_cell_state
+            final_cache_state[t] = new_state_cache
+
+        return (
+            final_hidden_state,
+            final_cell_state,
+            final_cache_state,
+            (hidden_state_0, cell_state_0),
+        )
+
+    def backward_step(
+        self,
+        next_derivative_of_hidden_state: Any,
+        next_derivative_of_cell_state: Any,
+        current_cache_state: Any,
+    ) -> Tuple[
+        Annotated[numpy.ndarray, "derivative_input"],
+        Annotated[numpy.ndarray, "derivative_prev_hidden_state"],
+        Annotated[numpy.ndarray, "derivative_prev_cell_state"],
+    ]:
+        """
+        backward_step
+
+        Args:
+            self (undefined):
+            next_derivative_of_hidden_state (Any):
+            next_derivative_of_cell_state (Any):
+            current_cache_state (Any):
+
+        Returns:
+            Tuple[        Annotated[numpy.ndarray, "derivative_input"],        Annotated[numpy.ndarray, "derivative_prev_hidden_state"],        Annotated[numpy.ndarray, "derivative_prev_cell_state"],    ]
+
+        """
+        (
+            current_input,
+            prev_hidden_state,
+            prev_cell_state,
+            input_gate,
+            forget_gate,
+            output_gate,
+            candidate_gate,
+            cur_cell_state,
+            A,
+        ) = current_cache_state
+
+        H = self.hidden_size
+
+        # derivatives calculation
+        derivative_output_gate = next_derivative_of_hidden_state * tanh_function(
+            cur_cell_state
+        )
+        derivative_cell_state = (
+            next_derivative_of_hidden_state
+            * output_gate
+            * d_tanh_function(cur_cell_state)
+            + next_derivative_of_cell_state
+        )
+
+        derivative_input_gate = derivative_cell_state * candidate_gate
+        derivative_candidate_gate = derivative_cell_state * input_gate
+        derivative_forget_gate = derivative_cell_state * prev_cell_state
+
+        derivative_prev_cell_state = derivative_cell_state * forget_gate
+
+        # gate activation derivatives
+        derivative_A_input_gate = derivative_input_gate * d_sigmoid_function(input_gate)
+        derivative_A_forget_gate = derivative_forget_gate * d_sigmoid_function(
+            forget_gate
+        )
+        derivative_A_output_gate = derivative_output_gate * d_sigmoid_function(
+            output_gate
+        )
+        derivative_A_candidate_gate = derivative_candidate_gate * d_sigmoid_function(
+            candidate_gate
+        )
+
+        derivative_A = numpy.concatenate(
+            [
+                derivative_A_input_gate,
+                derivative_A_forget_gate,
+                derivative_A_output_gate,
+                derivative_A_candidate_gate,
+            ],
+            axis=1,
+        )
+
+        # derivative wrt params
+        self.derivative_Wx += current_input @ derivative_A
+        self.derivative_Wh += prev_hidden_state.T @ derivative_A
+        self.derivative_b += derivative_A.sum(axis=0)
+
+        derivative_input = derivative_A @ self.Wx.T
+        derivative_prev_hidden_state = derivative_A @ self.Wh.T
+
+        return (
+            derivative_input,
+            derivative_prev_hidden_state,
+            derivative_prev_cell_state,
+        )

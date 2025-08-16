@@ -14,10 +14,10 @@ if __name__ == "__main__":
 
     # =====================================================================
     logging.info("Setting Device to compute...")
-    if torch.cuda.is_available:
+    if torch.cuda.is_available():
         logging.info("CUDA available to compute...")
         DEVICE = "cuda"
-    elif torch.backends.mps.is_available:
+    elif torch.backends.mps.is_available():
         logging.info("MPS available to compute...")
         DEVICE = "mps"
 
