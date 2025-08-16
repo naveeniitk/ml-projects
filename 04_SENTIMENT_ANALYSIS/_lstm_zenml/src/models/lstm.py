@@ -8,6 +8,7 @@ from utils.utilities import (
     d_tanh_function,
     d_sigmoid_function,
 )
+from config.params import LSTM_LEARNING_RATE
 
 
 class LstmClassifier(torchNeuralNetwork.Module):
@@ -29,6 +30,7 @@ class LstmClassifier(torchNeuralNetwork.Module):
         input_size: int,
         hidden_size: int,
         seed: int = 0,
+        learning_rate: int = LSTM_LEARNING_RATE,
         # *args: Tuple[Any],
         # **kwargs: Dict[str, Any]
     ):
@@ -54,6 +56,7 @@ class LstmClassifier(torchNeuralNetwork.Module):
 
         self.input_size = input_size
         self.hidden_size = hidden_size
+        self.learning_rate = learning_rate
 
         # Xavier(Glorot) initialization is a popular technique that helps
         # maintain a stable variance of activations and gradients across
@@ -297,3 +300,67 @@ class LstmClassifier(torchNeuralNetwork.Module):
             derivative_prev_hidden_state,
             derivative_prev_cell_state,
         )
+
+    def backward(
+        self,
+        derivative_loss_wrt_current_hidden_state: numpy.ndarray,
+        cache_state: Any,
+    ) -> Annotated[numpy.ndarray, "derivative_full_input_data"]:
+        """
+        backward
+
+        Args:
+            self (undefined):
+            derivative_loss_wrt_current_hidden_state (numpy.ndarray):
+            cache_state (Any):
+
+        Returns:
+            Annotated[numpy.ndarray, "derivative_full_input_data"]
+
+        """
+        T = len(cache_state)
+        batch = derivative_loss_wrt_current_hidden_state.shape[1]
+
+        input_size = self.input_size
+        derivative_full_input_data = numpy.zeros((T, batch, input_size))
+
+        # resetting derivatives
+        self.derivative_Wx.fill(0)
+        self.derivative_Wh.fill(0)
+        self.derivative_b.fill(0)
+
+        next_derivative_of_hidden_state = numpy.zeros((batch, self.hidden_size))
+        next_derivative_of_cell_state = numpy.zeros((batch, self.hidden_size))
+
+        for t in reversed(range(T)):
+            total_derivative_hidden_state = (
+                derivative_loss_wrt_current_hidden_state
+                + next_derivative_of_hidden_state
+            )
+
+            (
+                derivative_input_data,
+                next_derivative_of_hidden_state,
+                next_derivative_of_cell_state,
+            ) = self.backward_step(
+                next_derivative_of_hidden_state=total_derivative_hidden_state,
+                next_derivative_of_cell_state=next_derivative_of_cell_state,
+                current_cache_state=cache_state[t],
+            )
+
+            derivative_full_input_data[t] = derivative_input_data
+
+        return derivative_full_input_data
+
+    @property
+    def get_params(self):
+        return [self.Wx, self.Wh, self.b]
+
+    @property
+    def get_derivatives(self):
+        return [self.derivative_Wh, self.derivative_Wh, self.derivative_b]
+
+    def apply_derivtives(self):
+        self.Wx -= self.learning_rate * self.derivative_Wx
+        self.Wh -= self.learning_rate * self.derivative_Wh
+        self.b -= self.learning_rate * self.derivative_b
