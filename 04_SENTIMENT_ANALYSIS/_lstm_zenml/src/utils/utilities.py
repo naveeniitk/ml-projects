@@ -3,6 +3,7 @@ import pandas
 import logging
 from typing import Any
 
+
 def sigmoid_function(x: Any) -> Any:
     """
     Description of sigmoid_function
@@ -14,7 +15,7 @@ def sigmoid_function(x: Any) -> Any:
         Any
 
     """
-    logging.info(f"using Sigmoid function for [{x}]")
+    # logging.info(f"using Sigmoid function for [{x}]")
     return 1 / (1 + numpy.exp(-x))
 
 
@@ -48,7 +49,7 @@ def d_sigmoid_function(x: Any) -> Any:
         Any
 
     """
-    sigma_x = sigmoid_function(x)
+    sigma_x = stable_sigmoid_function(x)
     return sigma_x * (1 - sigma_x)
 
 
@@ -63,8 +64,11 @@ def tanh_function(x: Any) -> Any:
         Any
 
     """
-    logging.info(f"using tanh function for [{x}]")
-    return 2 / (1 - numpy.exp(-(2 * x)))
+    # logging.info(f"using tanh function for [{x}]")
+    ex = numpy.exp(x)
+    enx = numpy.exp(-x)
+    return (ex - enx) / (ex + enx)
+    # return 2 / (1 - numpy.exp(-(2 * x)))
 
 
 def d_tanh_function(x: Any) -> Any:

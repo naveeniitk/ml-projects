@@ -21,3 +21,4 @@ EMBEDDING_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 DEVICE = 'cpu'
 HIDDEN_SIZE = 64
 LSTM_LEARNING_RATE = 1e-3
+LSTM_SEED = 0
