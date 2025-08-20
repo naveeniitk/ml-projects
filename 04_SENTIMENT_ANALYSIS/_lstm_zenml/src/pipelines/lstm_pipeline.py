@@ -1,6 +1,7 @@
 import numpy
 import pandas
 import logging
+from datetime import datetime
 from typing import Any, Tuple
 from zenml import pipeline
 from config.params import DATA_PATH
@@ -8,6 +9,7 @@ from steps.importer_step import importer_step
 from steps.preprocess_step import preprocess_step
 from steps.trainer_step import trainer_step
 from models.lstm import LstmClassifier
+
 
 @pipeline(enable_cache=False)
 def lstm_pipeline() -> None:
@@ -37,7 +39,7 @@ def lstm_pipeline() -> None:
     # =====================================================================
     logging.info("Training and testing data split successfully.")
     X_train, X_test, y_train, y_test = preprocessed_data
-    
+
     # =====================================================================
     logging.info("Starting the training step...")
     try:
@@ -47,5 +49,8 @@ def lstm_pipeline() -> None:
         logging.error(f"An error occurred during the training step: {e}")
         raise e
     logging.info("Training step completed successfully.")
-    
-    lstm_model
+
+    # =====================================================================
+    # timestamp_microseconds = int(datetime.now().timestamp() * 1_000_000)
+    # logging.info(f"Saving model at: {timestamp_microseconds}")
+    # lstm_model.save(f"./saved_models/LSTM_{timestamp_microseconds}.keras")

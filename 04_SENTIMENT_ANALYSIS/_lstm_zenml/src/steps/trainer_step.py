@@ -66,63 +66,6 @@ def actual_training_step(
     return model
 
 
-# @step(enable_cache=False)
-# def actual_training_step(
-#     X: numpy.ndarray,
-#     y: numpy.ndarray,
-#     model: LstmClassifier,
-#     total_epochs: int,
-# ) -> LstmClassifier:
-#     """
-#     actual_training_step
-
-#     Args:
-#         X (numpy.ndarray): training data
-#         y (pandas.Series): training labels
-#         model (LstmClassifier):
-#         total_epochs: (int)
-
-#     Returns:
-#         LstmClassifier
-
-#     """
-#     logging.info(f"Starting training")
-#     total_samples = X.shape[0]
-
-#     loss_details = [0] * total_epochs
-#     epoch_number = [0] * total_epochs
-
-#     for epoch in range(total_epochs):
-#         total_loss = 0
-#         y_true = y
-
-#         # forward pass
-#         # final_hidden_state, final_cell_state, final_cache_state, hidden_state_0, cell_state_0 =
-#         y_pred, cache, a, b = model.forward(X)
-
-
-#         # computing loss
-#         loss = numpy.mean((y_pred - y_true) ** 2)
-#         total_loss += loss
-
-#         # back propagation
-#         derivative_loss = 2 * (y_pred - y_true) / y_true.size
-#         model.backward(
-#             derivative_loss_wrt_current_hidden_state=derivative_loss,
-#             cache_state=cache,
-#         )
-
-#         # update weights
-#         model.apply_derivatives()
-
-#         average_loss = total_loss / total_samples
-#         loss_details[epoch] = average_loss
-#         epoch_number[epoch] = epoch + 1
-#         logging.info(f"Epoch {epoch + 1} / {total_epochs}, Loss: {average_loss:.6f}")
-
-#     return model
-
-
 @step(enable_cache=False)
 def trainer_step(
     X_train: numpy.ndarray,
