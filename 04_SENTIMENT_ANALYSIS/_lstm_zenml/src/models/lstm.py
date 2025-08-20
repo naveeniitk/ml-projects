@@ -181,7 +181,7 @@ class LstmClassifier(torchNeuralNetwork.Module):
 
         """
         # T: number_of_time_steps
-        T, batch, _ = X.shape
+        T, batch = len(X), 1
 
         if hidden_state_0 is None or cell_state_0 is None:
             hidden_state_0, cell_state_0 = self.init_lstm_state(batch_size=batch)
@@ -194,6 +194,8 @@ class LstmClassifier(torchNeuralNetwork.Module):
 
         for t in range(T):
             current_input_x_t = X[t]
+            current_input_x_t = X[t].reshape(1, -1)
+
             new_hidden_state, new_cell_state, new_state_cache = self.forward_step(
                 input_data=current_input_x_t,
                 prev_hidden_state=prev_hidden_state,
@@ -234,6 +236,7 @@ class LstmClassifier(torchNeuralNetwork.Module):
             Tuple[        Annotated[numpy.ndarray, "derivative_input"],        Annotated[numpy.ndarray, "derivative_prev_hidden_state"],        Annotated[numpy.ndarray, "derivative_prev_cell_state"],    ]
 
         """
+
         (
             current_input,
             prev_hidden_state,
@@ -244,6 +247,7 @@ class LstmClassifier(torchNeuralNetwork.Module):
             candidate_gate,
             cur_cell_state,
             A,
+            _,
         ) = current_cache_state
 
         H = self.hidden_size
@@ -288,7 +292,7 @@ class LstmClassifier(torchNeuralNetwork.Module):
         )
 
         # derivative wrt params
-        self.derivative_Wx += current_input @ derivative_A
+        self.derivative_Wx += (current_input.T) @ derivative_A
         self.derivative_Wh += prev_hidden_state.T @ derivative_A
         self.derivative_b += derivative_A.sum(axis=0)
 
@@ -319,7 +323,8 @@ class LstmClassifier(torchNeuralNetwork.Module):
 
         """
         T = len(cache_state)
-        batch = derivative_loss_wrt_current_hidden_state.shape[1]
+        batch = 1
+        # derivative_loss_wrt_current_hidden_state.shape[1]
 
         input_size = self.input_size
         derivative_full_input_data = numpy.zeros((T, batch, input_size))
@@ -360,7 +365,7 @@ class LstmClassifier(torchNeuralNetwork.Module):
     def get_derivatives(self):
         return [self.derivative_Wh, self.derivative_Wh, self.derivative_b]
 
-    def apply_derivtives(self):
+    def apply_derivatives(self):
         self.Wx -= self.learning_rate * self.derivative_Wx
         self.Wh -= self.learning_rate * self.derivative_Wh
         self.b -= self.learning_rate * self.derivative_b

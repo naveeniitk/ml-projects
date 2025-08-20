@@ -3,6 +3,7 @@ import logging
 from config.set_environment import set_ENVIRONMENT
 from pipelines.lstm_pipeline import lstm_pipeline
 
+
 def main():
     logging.info(f"Starting steps in the pipeline")
     lstm_pipeline()
