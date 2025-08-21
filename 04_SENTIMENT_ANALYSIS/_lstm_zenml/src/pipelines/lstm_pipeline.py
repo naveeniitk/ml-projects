@@ -10,6 +10,7 @@ from steps.preprocess_step import preprocess_step
 from steps.trainer_step import trainer_step
 from models.lstm import LstmClassifier
 from steps.save_models import save_lstm_model
+from steps.evaluation import evaluate_model
 
 
 @pipeline(enable_cache=False)
@@ -56,3 +57,8 @@ def lstm_pipeline() -> None:
     # =====================================================================
     logging.info(f"Save model info")
     save_lstm_model(lstm_model)
+
+    # =====================================================================
+    logging.info(f"Evaluate model metrics ...")
+    breakpoint()
+    evaluate_model(model=lstm_model, X_test=X_test, y_true=y_test)

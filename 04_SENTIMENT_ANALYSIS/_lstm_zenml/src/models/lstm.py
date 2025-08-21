@@ -73,10 +73,18 @@ class LstmClassifier(torchNeuralNetwork.Module):
 
         self.b = numpy.zeros(4 * hidden_size)
 
+        self.output_weights = random_number_generator.normal(
+            scale=standard_deviation, size=(self.hidden_size,)
+        )
+        self.output_bias = 0.0  # Scalar bias
+
         # derivatives of Wx, Wh, b
         self.derivative_Wx = numpy.zeros_like(self.Wx)
         self.derivative_Wh = numpy.zeros_like(self.Wh)
         self.derivative_b = numpy.zeros_like(self.b)
+
+        self.derivative_output_weights = numpy.zeros_like(self.output_weights)
+        self.derivative_output_bias = 0.0
 
     def init_lstm_state(self, batch_size: int) -> Tuple[numpy.ndarray, numpy.ndarray]:
         """
@@ -333,6 +341,9 @@ class LstmClassifier(torchNeuralNetwork.Module):
         self.derivative_Wx.fill(0)
         self.derivative_Wh.fill(0)
         self.derivative_b.fill(0)
+        
+        self.derivative_output_bias = 0.0
+        self.derivative_output_weights.fill(0)
 
         next_derivative_of_hidden_state = numpy.zeros((batch, self.hidden_size))
         next_derivative_of_cell_state = numpy.zeros((batch, self.hidden_size))
@@ -369,3 +380,20 @@ class LstmClassifier(torchNeuralNetwork.Module):
         self.Wx -= self.learning_rate * self.derivative_Wx
         self.Wh -= self.learning_rate * self.derivative_Wh
         self.b -= self.learning_rate * self.derivative_b
+
+        self.output_weights -= self.learning_rate * self.derivative_output_weights
+        self.output_bias -= self.learning_rate * self.derivative_output_bias
+
+    def predict(
+        self,
+        X: numpy.ndarray,
+    ) -> numpy.ndarray:
+        final_hidden_state, _, _, _ = self.forward(X)
+        last_hidden_state = final_hidden_state[-1, 0, :]
+
+        # Linear output
+        logit = last_hidden_state @ self.output_weights + self.output_bias
+        prob = sigmoid_function(logit)
+
+        # returning class label (0 or 1)
+        return int(prob >= 0.5)

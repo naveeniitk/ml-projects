@@ -17,8 +17,12 @@ def main():
 
 
 @click.command()
-@click.option("--epochs", default=config_params.LSTM_TOTAL_EPOCHS, help="#epochs for LSTM")
-@click.option("--samples", default=config_params.TOTAL_SAMPLES, help="#samples to consider")
+@click.option(
+    "--epochs", default=config_params.LSTM_TOTAL_EPOCHS, help="#epochs for LSTM"
+)
+@click.option(
+    "--samples", default=config_params.TOTAL_SAMPLES, help="#samples to consider"
+)
 def set_arguments_from_cli(epochs, samples) -> None:
     logging.info(f"Arguments provided in cli...")
     set_epochs_for_lstm(epochs)
