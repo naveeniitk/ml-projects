@@ -1,10 +1,10 @@
 import numpy
 import pandas
 import logging
+from typing import Any
 from zenml.steps import step
 from models.lstm import LstmClassifier
-from config.params import HIDDEN_SIZE, LSTM_SEED, LSTM_TOTAL_EPOCHS
-from typing import Any
+import config.params as config_params
 
 
 @step(enable_cache=False)
@@ -70,7 +70,7 @@ def actual_training_step(
 def trainer_step(
     X_train: numpy.ndarray,
     y_train: pandas.Series,
-    hidden_size: int = HIDDEN_SIZE,
+    hidden_size: int = config_params.HIDDEN_SIZE,
 ) -> LstmClassifier:
 
     print(f"X_train: {X_train.shape}")
@@ -80,12 +80,17 @@ def trainer_step(
 
     logging.info("Initializing the LSTM model...")
     lstm_model: Any = LstmClassifier(
-        input_size=len(X_train[0]), hidden_size=hidden_size, seed=LSTM_SEED
+        input_size=len(X_train[0]),
+        hidden_size=hidden_size,
+        seed=config_params.LSTM_SEED,
     )
 
     logging.info(f"Starting LSTM training...")
     lstm_model = actual_training_step(
-        X=X_train, y=y_train, model=lstm_model, total_epochs=LSTM_TOTAL_EPOCHS
+        X=X_train,
+        y=y_train,
+        model=lstm_model,
+        total_epochs=config_params.LSTM_TOTAL_EPOCHS,
     )
 
     logging.info("Training completed successfully.")

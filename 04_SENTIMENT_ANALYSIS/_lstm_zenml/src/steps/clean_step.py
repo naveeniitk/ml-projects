@@ -13,8 +13,23 @@ from nltk import tokenize  # word_tokenize
 
 # Download required NLTK data
 # nltk.download('punkt_tab')
-nltk.download("punkt")
-nltk.download("wordnet")
+nltk.data.path.extend(
+    [
+        "./nltk_data/punkt",
+        "./nltk_data/wordnet",
+    ]
+)
+
+try:
+    nltk.data.find("tokenizers/punkt")
+except LookupError:
+    nltk.download("punkt", download_dir="./nltk_data/punkt")
+
+try:
+    nltk.data.find("corpora/wordnet")
+except LookupError:
+    nltk.download("wordnet", download_dir="./nltk_data/wordnet")
+
 
 spellings = Speller(lang="en")
 lemmatizer = nltk.WordNetLemmatizer()

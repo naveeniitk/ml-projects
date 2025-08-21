@@ -1,7 +1,6 @@
 import click
 import logging
 import config.params as config_params
-from config.params import LSTM_TOTAL_EPOCHS, TOTAL_SAMPLES
 
 
 def set_epochs_for_lstm(epochs) -> None:

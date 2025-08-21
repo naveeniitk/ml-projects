@@ -20,3 +20,4 @@ _env_04_SENTIMENT_ANALYSIS/*
 04_SENTIMENT_ANALYSIS/_lstm_zenml/src/mlruns/__pycache__/*
 04_SENTIMENT_ANALYSIS/_lstm_zenml/src/models/__pycache__/*
 04_SENTIMENT_ANALYSIS/_lstm_zenml/src/pipelines/__pycache__/*
+04_SENTIMENT_ANALYSIS/_lstm_zenml/src/nltk_data/*

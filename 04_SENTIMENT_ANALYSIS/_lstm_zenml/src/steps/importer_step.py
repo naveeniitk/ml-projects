@@ -2,7 +2,7 @@ import numpy
 import pandas
 import logging
 from zenml.steps import step
-from config.params import TOTAL_SAMPLES
+import config.params as config_params
 
 
 @step(enable_cache=False)
@@ -14,7 +14,7 @@ def importer_step(data_path: str) -> pandas.DataFrame:
     dataframe = pandas.read_csv(data_path, delimiter=",", encoding="utf-8")
 
     sample_of_datapoints = dataframe[["review", "sentiment"]].sample(
-        n=TOTAL_SAMPLES, random_state=0
+        n=config_params.TOTAL_SAMPLES, random_state=0
     )
     # sample_of_100_datapoints.to_csv('./sentiment-dataset/IMDB/sample_IMDB_dataset.csv', index=False)
 

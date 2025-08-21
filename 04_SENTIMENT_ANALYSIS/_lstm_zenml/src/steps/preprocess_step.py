@@ -5,12 +5,7 @@ from zenml.steps import step
 from typing import Tuple, List, Dict
 from typing import Annotated
 from sklearn import model_selection
-from config.params import (
-    TEST_SIZE,
-    RANDOM_STATE,
-    SENTENCE_TRANSFORMER_EMBEDDING_SIZE,
-    EMBEDDING_MODEL_NAME,
-)
+import config.params as config_params
 from steps.clean_step import clean_step
 
 # from steps.embedding_step import embedding_using_vocabulary_building, encode_vocabulary_embedding
@@ -41,11 +36,11 @@ def preprocess_step(dataframe: pandas.DataFrame) -> Tuple[
     #     word2idx=embedding_mapping,
     # )
 
-    logging.info( f"word embedding of features using : {EMBEDDING_MODEL_NAME}" )
+    logging.info( f"word embedding of features using : {config_params.EMBEDDING_MODEL_NAME}" )
     
     embedded_features: numpy.ndarray = embedding_features_using_sentence_transformer(
         features=features,
-        max_embedding_size=SENTENCE_TRANSFORMER_EMBEDDING_SIZE,
+        max_embedding_size=config_params.SENTENCE_TRANSFORMER_EMBEDDING_SIZE,
     )
     logging.info(f"embedded_features: {embedded_features[:5]}")
     
@@ -53,8 +48,8 @@ def preprocess_step(dataframe: pandas.DataFrame) -> Tuple[
     X_train, y_train, X_test, y_test = model_selection.train_test_split(
         embedded_features,
         embedded_labels,
-        test_size=TEST_SIZE,
-        random_state=RANDOM_STATE,
+        test_size=config_params.TEST_SIZE,
+        random_state=config_params.RANDOM_STATE,
         stratify=embedded_labels,
     )
 

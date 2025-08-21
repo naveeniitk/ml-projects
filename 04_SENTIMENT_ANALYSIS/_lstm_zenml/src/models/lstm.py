@@ -8,7 +8,7 @@ from utils.utilities import (
     d_tanh_function,
     d_sigmoid_function,
 )
-from config.params import LSTM_LEARNING_RATE
+import config.params as config_params
 
 
 class LstmClassifier(torchNeuralNetwork.Module):
@@ -30,7 +30,7 @@ class LstmClassifier(torchNeuralNetwork.Module):
         input_size: int,
         hidden_size: int,
         seed: int = 0,
-        learning_rate: int = LSTM_LEARNING_RATE,
+        learning_rate: int = config_params.LSTM_LEARNING_RATE,
         # *args: Tuple[Any],
         # **kwargs: Dict[str, Any]
     ):

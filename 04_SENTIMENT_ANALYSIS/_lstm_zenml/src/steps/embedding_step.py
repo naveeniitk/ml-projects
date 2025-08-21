@@ -3,33 +3,30 @@ import numpy
 import pandas
 from zenml.steps import step
 from typing import List, Dict, Tuple, Annotated
-from config.params import (
-    MAX_VOCAB_SIZE,
-    MAX_LENGTH,
-    SENTENCE_TRANSFORMER_EMBEDDING_SIZE,
-    EMBEDDING_MODEL_NAME,
-    DEVICE,
-)
-import transformers
+import config.params as config_params
 from sentence_transformers import SentenceTransformer
 
 
 def embedding_features_using_sentence_transformer(
     features: pandas.DataFrame,
-    max_embedding_size: int = SENTENCE_TRANSFORMER_EMBEDDING_SIZE,
+    max_embedding_size: int = config_params.SENTENCE_TRANSFORMER_EMBEDDING_SIZE,
 ) -> Tuple[
     Annotated[numpy.ndarray, "embedded_features"],
     Annotated[numpy.ndarray, "embedded_labels"],
 ]:
     logging.info(f"truncate dimension: {max_embedding_size}")
-    truncate_dimension = max_embedding_size if max_embedding_size else MAX_LENGTH
-    sentence_transformer_embedding = SentenceTransformer(EMBEDDING_MODEL_NAME)
+    truncate_dimension = (
+        max_embedding_size if max_embedding_size else config_params.MAX_LENGTH
+    )
+    sentence_transformer_embedding = SentenceTransformer(
+        config_params.EMBEDDING_MODEL_NAME
+    )
 
-    logging.info(f"Computing features embedding on Device: {DEVICE}")
+    logging.info(f"Computing features embedding on Device: {config_params.DEVICE}")
     features_embeddings = sentence_transformer_embedding.encode(
-        features.values, 
+        features.values,
         truncate_dim=truncate_dimension,
-        device=DEVICE,
+        device=config_params.DEVICE,
     )
 
     logging.info(f"features_embeddings shape: {features_embeddings.shape}")
@@ -38,7 +35,7 @@ def embedding_features_using_sentence_transformer(
 
 def embedding_using_vocabulary_building(
     tokenized_features: List[str],
-    max_vocab_size: int = MAX_VOCAB_SIZE,
+    max_vocab_size: int = config_params.MAX_VOCAB_SIZE,
 ) -> Dict[str, int]:
     """
     Embeds the input texts using a vocabulary built from the texts.
@@ -77,7 +74,7 @@ def embedding_using_vocabulary_building(
 def encode_vocabulary_embedding(
     tokenized_texts: Dict[str, int],
     word2idx: Dict[str, int],
-    max_seq_len: int = MAX_LENGTH,
+    max_seq_len: int = config_params.MAX_LENGTH,
 ) -> numpy.ndarray:
     """
     Convert tokenized texts into sequences of indices based on the vocabulary.

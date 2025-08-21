@@ -4,11 +4,12 @@ import logging
 from datetime import datetime
 from typing import Any, Tuple
 from zenml import pipeline
-from config.params import DATA_PATH
+import config.params as config_params
 from steps.importer_step import importer_step
 from steps.preprocess_step import preprocess_step
 from steps.trainer_step import trainer_step
 from models.lstm import LstmClassifier
+from steps.save_models import save_lstm_model
 
 
 @pipeline(enable_cache=False)
@@ -17,7 +18,9 @@ def lstm_pipeline() -> None:
 
     logging.info("Starting the importer step...")
     try:
-        imported_dataframe: pandas.DataFrame = importer_step(data_path=DATA_PATH)
+        imported_dataframe: pandas.DataFrame = importer_step(
+            data_path=config_params.DATA_PATH
+        )
         logging.info("Data imported successfully.")
     except Exception as e:
         logging.error(f"An error occurred during the importer step: {e}")
@@ -51,6 +54,5 @@ def lstm_pipeline() -> None:
     logging.info("Training step completed successfully.")
 
     # =====================================================================
-    # timestamp_microseconds = int(datetime.now().timestamp() * 1_000_000)
-    # logging.info(f"Saving model at: {timestamp_microseconds}")
-    # lstm_model.save(f"./saved_models/LSTM_{timestamp_microseconds}.keras")
+    logging.info(f"Save model info")
+    save_lstm_model(lstm_model)
