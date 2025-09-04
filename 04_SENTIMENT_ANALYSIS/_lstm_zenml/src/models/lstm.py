@@ -74,9 +74,12 @@ class LstmClassifier(torchNeuralNetwork.Module):
         self.b = numpy.zeros(4 * hidden_size)
 
         self.output_weights = random_number_generator.normal(
-            scale=standard_deviation, size=(self.hidden_size,)
+            scale=standard_deviation,
+            size=(self.hidden_size, config_params.NUMBER_CLASSES),
         )
-        self.output_bias = 0.0  # Scalar bias
+        self.output_bias = random_number_generator.normal(
+            scale=standard_deviation, size=(config_params.NUMBER_CLASSES)
+        )
 
         # derivatives of Wx, Wh, b
         self.derivative_Wx = numpy.zeros_like(self.Wx)
@@ -84,7 +87,7 @@ class LstmClassifier(torchNeuralNetwork.Module):
         self.derivative_b = numpy.zeros_like(self.b)
 
         self.derivative_output_weights = numpy.zeros_like(self.output_weights)
-        self.derivative_output_bias = 0.0
+        self.derivative_output_bias = numpy.zeros_like(self.output_bias)
 
     def init_lstm_state(self, batch_size: int) -> Tuple[numpy.ndarray, numpy.ndarray]:
         """
@@ -341,8 +344,8 @@ class LstmClassifier(torchNeuralNetwork.Module):
         self.derivative_Wx.fill(0)
         self.derivative_Wh.fill(0)
         self.derivative_b.fill(0)
-        
-        self.derivative_output_bias = 0.0
+
+        self.derivative_output_bias.fill(0.0)
         self.derivative_output_weights.fill(0)
 
         next_derivative_of_hidden_state = numpy.zeros((batch, self.hidden_size))
@@ -384,16 +387,92 @@ class LstmClassifier(torchNeuralNetwork.Module):
         self.output_weights -= self.learning_rate * self.derivative_output_weights
         self.output_bias -= self.learning_rate * self.derivative_output_bias
 
+    def sequence_forward(
+        self,
+        seq: numpy.ndarray,
+    ) -> numpy.ndarray:
+        return seq @ self.output_weights + self.output_bias
+
+    def fit(
+        self,
+        X: numpy.ndarray,
+        y: numpy.ndarray,
+        total_epochs: int,
+    ) -> None:
+        """
+        Train the LSTM model using cross-entropy loss.
+
+        Args:
+            X (numpy.ndarray): training data of shape (num_samples, input_dim)
+            y (numpy.ndarray): training labels of shape (num_samples,)
+            model (LstmClassifier): the LSTM model
+            total_epochs (int): number of training epochs
+
+        Returns:
+            None
+        """
+        total_samples = X.shape[0]
+
+        for epoch in range(total_epochs):
+            total_loss = 0.0
+            for i in range(total_samples):
+                x_i = X[i].reshape(1, -1)  # (1, seq_len) or (1, input_dim)
+                y_true = y[i]  # scalar class index (int)
+                # forward pass
+                final_hidden_state, final_cell_state, cache, _ = self.forward(x_i)
+                # last hidden state -> logits
+                logits = self.sequence_forward(seq=final_hidden_state[-1])
+                # logits shape: (num_classes,)
+                # softmax
+                exp_logits = numpy.exp(logits - numpy.max(logits))  # stability
+                probs = exp_logits / numpy.sum(exp_logits)
+                probs = probs.squeeze()
+                # compute log loss
+                loss = -numpy.log(probs[y_true] + 1e-12)
+                total_loss += loss
+                # gradient wrt logits (cross-entropy derivative)
+                y_one_hot = numpy.zeros_like(probs)
+                y_one_hot[y_true] = 1
+                d_logits = probs - y_one_hot  # shape (num_classes,)
+
+                weight_projection = d_logits @ self.output_weights.T
+
+                # backprop through classifier head + LSTM
+                self.backward(
+                    derivative_loss_wrt_current_hidden_state=weight_projection,
+                    cache_state=cache,
+                )
+                # update weights
+                self.apply_derivatives()
+
+            print(
+                f"Epoch {epoch+1}/{total_epochs}, Loss: {total_loss/total_samples:.4f}"
+            )
+
     def predict(
         self,
         X: numpy.ndarray,
     ) -> numpy.ndarray:
-        final_hidden_state, _, _, _ = self.forward(X)
-        last_hidden_state = final_hidden_state[-1, 0, :]
-
-        # Linear output
-        logit = last_hidden_state @ self.output_weights + self.output_bias
-        prob = sigmoid_function(logit)
-
-        # returning class label (0 or 1)
-        return int(prob >= 0.5)
+        """
+        X: (N, input_size) where N = number of data points
+        Returns: (N, C) predictions
+        """
+        preds = []
+        for i in range(X.shape[0]):  # 15 samples
+            # Forward through RNN to get hidden representation
+            h_T, _, _, _ = self.forward(X[i])  
+            
+            # Pass last hidden state to linear layer
+            logits = self.sequence_forward(h_T[-1])
+            
+            # Convert to prediction
+            if config_params.NUMBER_CLASSES == 2:
+                probs = sigmoid_function(logits)
+                # preds.append(int(probs >= 0.5))
+                preds.append(probs)
+            else:
+                exp_logits = numpy.exp(logits - numpy.max(logits))
+                probs = exp_logits / numpy.sum(exp_logits)
+                preds.append(int(numpy.argmax(probs)))
+        preds = numpy.array(preds)
+        return preds

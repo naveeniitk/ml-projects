@@ -60,5 +60,4 @@ def lstm_pipeline() -> None:
 
     # =====================================================================
     logging.info(f"Evaluate model metrics ...")
-    breakpoint()
     evaluate_model(model=lstm_model, X_test=X_test, y_true=y_test)
