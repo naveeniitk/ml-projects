@@ -12,7 +12,6 @@ _env_04_SENTIMENT_ANALYSIS/*
 04_SENTIMENT_ANALYSIS/data/AMAZON_REVIEWS/*
 04_SENTIMENT_ANALYSIS/data/IMDB/*
 04_SENTIMENT_ANALYSIS/data/TWEETS/*
-
 04_SENTIMENT_ANALYSIS/_lstm_zenml/sentiment-dataset/*
 04_SENTIMENT_ANALYSIS/_lstm_zenml/src/steps/__pycache__/*
 04_SENTIMENT_ANALYSIS/_lstm_zenml/src/utils/__pycache__/*
@@ -22,3 +21,11 @@ _env_04_SENTIMENT_ANALYSIS/*
 04_SENTIMENT_ANALYSIS/_lstm_zenml/src/pipelines/__pycache__/*
 04_SENTIMENT_ANALYSIS/_lstm_zenml/src/nltk_data/*
 04_SENTIMENT_ANALYSIS/_lstm_zenml/src/saved_models/*
+
+_env_05_OCR_DOCUMENT_PARSER/*
+05_OCR_DOCUMENT_PARSER/layoutlmv3-finetune/*
+05_OCR_DOCUMENT_PARSER/layoutlmv3-finetuned/*
+05_OCR_DOCUMENT_PARSER/layoutlmv3-finetuned_II/*
+05_OCR_DOCUMENT_PARSER/files/*gguf
+05_OCR_DOCUMENT_PARSER/files/*.pdf
+
