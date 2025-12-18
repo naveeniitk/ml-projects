@@ -1,3 +1,5 @@
+**/*.DS_Store
+
 _env_01_IRIS_SPECIES/*
 01_IRIS_SPECIES/data/*.zip
 01_IRIS_SPECIES/data/*.sqlite
@@ -28,4 +30,6 @@ _env_05_OCR_DOCUMENT_PARSER/*
 05_OCR_DOCUMENT_PARSER/layoutlmv3-finetuned_II/*
 05_OCR_DOCUMENT_PARSER/files/*gguf
 05_OCR_DOCUMENT_PARSER/files/*.pdf
+
+_env_06_AGENTIC_AI/*
 
