@@ -1,4 +1,5 @@
 **/*.DS_Store
+**/*.pyc
 
 _env_01_IRIS_SPECIES/*
 01_IRIS_SPECIES/data/*.zip

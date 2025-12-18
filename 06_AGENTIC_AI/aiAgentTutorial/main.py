@@ -4,11 +4,13 @@ from dotenv import load_dotenv
 
 from google import genai
 from google.genai import types
+from typing import Any
 
 load_dotenv()
 
 arguments: list = sys.argv
 print(f"Args: {arguments}")
+
 
 def main():
 
@@ -19,17 +21,28 @@ def main():
     print("Available Models: ", len(models))
 
     modelNames: list = [model.name for model in models]
-    print(f"modelNames: {modelNames}")
+    # print(f"modelNames: {modelNames}")
     response = None
-    prompt = "Give a Error message as this is not the prompt I was trying to give!!",
-    
+    prompt: str = "Give a Dummy Error message of No PROMPT!!"
+
+    messages = [types.Content(role="user", parts=[types.Part.from_text(text=prompt)])]
+    # print(f"messages: {messages}")
+
     if len(arguments) > 1 and len(arguments[1]) > 0:
-        prompt = arguments[1];
+        prompt = arguments[1]
+
+    verboseFlag = False
+    if len(arguments) > 2 and arguments[2] == "--verbose":
+        verboseFlag = True
+
     print(f"PROMPT: {prompt}")
 
-    TIME_TO_MAKE_CALL = 0 # to save free calls
+    TIME_TO_MAKE_CALL = 0
+    if len(arguments) > 3 and arguments[3] == "1":
+        TIME_TO_MAKE_CALL = 1
+
+    print(f"TIME_TO_MAKE_CALL: {TIME_TO_MAKE_CALL}")
     if TIME_TO_MAKE_CALL:
-        print(f"Making call!!!")
         try:
             response = client.models.generate_content(
                 model="gemini-2.5-flash",
@@ -40,18 +53,28 @@ def main():
                     )
                 ),
             )
+            print("------------------------------------")
             print(response.text)
 
             if response is None or response.usage_metadata is None:
                 print(f"Reponse is Malformed!!")
             else:
-                print(f"Prompt   tokens: {response.usage_metadata.prompt_token_count}")
-                print(f"Response tokens: {response.usage_metadata.candidates_token_count}")
+                if verboseFlag:
+                    print("------------------------------------")
+                    print(f"User   prompt: {prompt}")
+                    print("------------------------------------")
+                    print(
+                        f"Prompt   tokens: {response.usage_metadata.prompt_token_count}"
+                    )
+                    print(
+                        f"Response tokens: {response.usage_metadata.candidates_token_count}"
+                    )
+            print("------------------------------------")
 
         except Exception as e:
             print(f"Error: {e}")
     else:
-        print(f"Skipping call!!!")
+        print(f"Skipping Call!")
 
 
 main()
