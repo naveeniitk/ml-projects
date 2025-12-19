@@ -5,8 +5,11 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 from typing import Any
+from functions.get_files_info import get_files_info
 
 load_dotenv()
+
+SEPARATOR = "------------------------------------"
 
 arguments: list = sys.argv
 print(f"Args: {arguments}")
@@ -53,23 +56,23 @@ def main():
                     )
                 ),
             )
-            print("------------------------------------")
+            print(SEPARATOR)
             print(response.text)
 
             if response is None or response.usage_metadata is None:
                 print(f"Reponse is Malformed!!")
             else:
                 if verboseFlag:
-                    print("------------------------------------")
+                    print(SEPARATOR)
                     print(f"User   prompt: {prompt}")
-                    print("------------------------------------")
+                    print(SEPARATOR)
                     print(
                         f"Prompt   tokens: {response.usage_metadata.prompt_token_count}"
                     )
                     print(
                         f"Response tokens: {response.usage_metadata.candidates_token_count}"
                     )
-            print("------------------------------------")
+            print(SEPARATOR)
 
         except Exception as e:
             print(f"Error: {e}")
@@ -78,3 +81,5 @@ def main():
 
 
 main()
+
+# print(get_files_info("calculator", 'main.py'))
