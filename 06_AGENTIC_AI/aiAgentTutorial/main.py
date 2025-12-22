@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 from typing import Any
-from functions.write_file import write_file
 
 load_dotenv()
 
@@ -81,5 +80,3 @@ def main():
 
 
 main()
-
-print(write_file("calculator", 'lorem2.txt', 'sample writing...'))
