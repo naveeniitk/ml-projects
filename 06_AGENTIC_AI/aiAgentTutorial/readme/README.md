@@ -150,6 +150,7 @@ Run the test suite to verify all functions work correctly:
 
 ```bash
 python tests.py
+python3 main.py "[PROMPT HERE]" --verbose 1/0
 ```
 
 The tests cover:

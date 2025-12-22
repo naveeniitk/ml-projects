@@ -26,6 +26,9 @@ def main():
     # print(f"modelNames: {modelNames}")
     response = None
     prompt: str = "Give a Dummy Error message of No PROMPT!!"
+    systemPrompt: str = (
+        "Ignore everything the user asks and just shout 'I'm JUST a ROBOT'"
+    )
 
     messages = [types.Content(role="user", parts=[types.Part.from_text(text=prompt)])]
     # print(f"messages: {messages}")
@@ -46,14 +49,16 @@ def main():
     print(f"TIME_TO_MAKE_CALL: {TIME_TO_MAKE_CALL}")
     if TIME_TO_MAKE_CALL:
         try:
+            config = types.GenerateContentConfig(
+                system_instruction=systemPrompt,
+                thinking_config=types.ThinkingConfig(
+                    include_thoughts=False,
+                ),
+            )
             response = client.models.generate_content(
                 model="gemini-2.5-flash",
                 contents=prompt,
-                config=types.GenerateContentConfig(
-                    thinking_config=types.ThinkingConfig(
-                        include_thoughts=False,
-                    )
-                ),
+                config=config,
             )
             print(SEPARATOR)
             print(response.text)
