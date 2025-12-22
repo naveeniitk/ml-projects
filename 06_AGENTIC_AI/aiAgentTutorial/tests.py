@@ -1,6 +1,7 @@
 import unittest
 from functions.get_files_info import get_files_info
 from functions.get_files_contents import get_files_contents
+from functions.write_file import write_file
 
 
 class TestGetFilesInfo(unittest.TestCase):
@@ -65,6 +66,21 @@ class TestGetFilesContents(unittest.TestCase):
         self.assertIsNotNone(result)
         self.assertIsInstance(result, str)
         self.assertGreater(len(result), 0)
+
+
+class TestWriteFile(unittest.TestCase):
+    def setUp(self):
+        self.working_directory = "calculator"
+
+    def test_write_lorem_file(self):
+        result = write_file(self.working_directory, "lorem2.txt", "sample writing...")
+        self.assertIsNotNone(result)
+        self.assertIsInstance(result, str)
+        self.assertGreater(len(result), 0)
+        self.assertRegex(
+            text=result,
+            expected_regex="Content with \\[len:17\\] written on",
+        )
 
 
 if __name__ == "__main__":
