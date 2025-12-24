@@ -5,7 +5,7 @@ from google.genai import types
 def get_files_info(
     working_directory: str,
     directory: str = ".",
-) -> str:  # print(f"Fetching files info from the CWD!")
+) -> str:
     """
     Args:
         working_directory (str)
@@ -55,10 +55,10 @@ schema_get_files_info = types.FunctionDeclaration(
         type=types.Type.OBJECT,
         properties={
             "directory": types.Schema(
-                type=types.Type.STRING,  # Use = instead of :
+                type=types.Type.STRING,
                 description="Working directory to list files, relative to the working directory",
             )
         },
-        required=["directory"],  # Recommended to define required fields
+        required=["directory"],
     ),
 )

@@ -1,13 +1,15 @@
-import os
 import sys
+import os
+from google.genai import types
+from google import genai
+from functions.write_file import schema_write_file
+from functions.run_python_file import schema_run_python_file
+from functions.get_files_info import schema_get_files_info
+from functions.get_files_contents import schema_get_files_contents
 from dotenv import load_dotenv
 
-from google import genai
-from google.genai import types
-from functions.get_files_info import schema_get_files_info
 
 load_dotenv()
-
 SEPARATOR = "------------------------------------"
 
 arguments: list = sys.argv
@@ -32,6 +34,9 @@ def main():
     When a user asks a question or makes a request, make a function call plan. You can perform the following operations if needed:
     
     - list files and directories
+    - Read the content of a file
+    - write to a file (create or update)
+    - Run a Python file with optional arguments
     
     All paths you provide should be relative to the working directory. You don't need to provide working directory in the function call, as it is ingested automatically for security purposes.
     """
@@ -42,6 +47,9 @@ def main():
     availableFunctions = types.Tool(
         function_declarations=[
             schema_get_files_info,
+            schema_get_files_contents,
+            schema_run_python_file,
+            schema_write_file,
         ],
     )
 

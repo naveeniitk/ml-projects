@@ -103,15 +103,38 @@ python main.py "<your_prompt>" [--verbose] [1]
 **Examples:**
 
 ```bash
-# Basic usage
+# Basic usage (skips API call by default)
 python main.py "List all files in the calculator directory"
 
-# With verbose output
+# Make actual API call with verbose output
 python main.py "Read the contents of lorem.txt" --verbose 1
+
+# Make API call without verbose output
+python main.py "What files are in the project?" "" 1
 
 # Skip API call (for testing)
 python main.py "What files are in the project?" --verbose
 ```
+
+**Note:** When the agent makes function calls, you'll see output like:
+```
+Function Calls: [...]
+Calling function: get_files_info({'directory': 'calculator'})
+```
+
+This shows which tools the agent decided to use and with what arguments.
+
+### Example Output
+
+Here's an example of successful tool calling by Gemini:
+
+![Successful Tool Calling Example](image-4.png)
+
+The image above demonstrates the agent successfully:
+- Receiving a user prompt
+- Making autonomous decisions to call appropriate tools
+- Displaying function call information
+- Executing file system operations
 
 ### Running the Calculator
 
@@ -126,12 +149,12 @@ python main.py "3 + 5 * 2"
 
 ```
 aiAgentTutorial/
-├── main.py                 # Main agent script
+├── main.py                 # Main agent script with API integration
 ├── functions/              # Agent tools/functions
-│   ├── get_files_info.py  # List directory contents
-│   ├── get_files_contents.py  # Read file contents
-│   ├── write_file.py      # Write files
-│   └── run_python_file.py # Execute Python files
+│   ├── get_files_info.py  # List directory contents + schema
+│   ├── get_files_contents.py  # Read file contents + schema
+│   ├── write_file.py      # Write files + schema
+│   └── run_python_file.py # Execute Python files + schema
 ├── calculator/            # Example calculator application
 │   ├── main.py
 │   ├── pkg/
@@ -144,6 +167,10 @@ aiAgentTutorial/
     └── README.md         # This file
 ```
 
+**Note:** Each function in the `functions/` directory exports both:
+- The actual function implementation (e.g., `get_files_info()`)
+- A schema declaration (e.g., `schema_get_files_info`) for API registration
+
 ## Testing
 
 Run the test suite to verify all functions work correctly:
@@ -153,12 +180,26 @@ python tests.py
 python3 main.py "[PROMPT HERE]" --verbose 1/0
 ```
 
+![Running Tests](image-2.png)
+
 The tests cover:
 
 - `TestGetFilesInfo`: Directory listing functionality
 - `TestGetFilesContents`: File reading functionality
 - `TestWriteFile`: File writing functionality
 - `TestRunPythonFile`: Python file execution functionality
+
+## Architecture
+
+The agent is built using Google's Gemini API with function calling capabilities:
+
+- **Function Schemas**: Each tool function exports a `FunctionDeclaration` schema that defines its interface
+- **Tool Registration**: Schemas are collected into a `types.Tool` object and passed to the API via `GenerateContentConfig`
+- **System Instructions**: The agent receives a system prompt that guides its behavior and capabilities
+- **Function Calling**: The API can autonomously decide to call functions based on the user's prompt
+- **Response Handling**: The code checks for `function_calls` in the response and displays them, or shows the text response
+
+This architecture allows the agent to autonomously decide when and how to use tools without explicit instructions.
 
 ## Security Features
 
@@ -172,32 +213,84 @@ The agent functions include security measures:
 
 ## How It Works
 
-1. **Agent Initialization**: The main script connects to Google's Gemini API using your API key
-2. **Tool Registration**: The agent has access to file system tools (get_files_info, get_files_contents, write_file, run_python_file)
-3. **Autonomous Execution**: The agent can:
-   - Analyze user prompts
-   - Decide which tools to use
-   - Execute tool calls in sequence
-   - Iterate based on results
-4. **Response Generation**: The agent returns results and can provide verbose token usage information
+1. **Agent Initialization**: The main script connects to Google's Gemini API using your API key and loads available models
+
+   When the agent starts, it lists all available models from the Gemini API:
+
+   ![Available Models List](image-1.png)
+
+   This shows the number of models available and allows you to see which models you can use with the API.
+
+2. **System Prompt**: The agent is configured with a system instruction that explains its capabilities:
+   - List files and directories
+   - Read file contents
+   - Write to files (create or update)
+   - Run Python files with optional arguments
+3. **Tool Registration**: The agent has access to four file system tools registered via `FunctionDeclaration` schemas:
+   - `get_files_info` - Lists directory contents
+   - `get_files_contents` - Reads file contents
+   - `write_file` - Writes to files
+   - `run_python_file` - Executes Python scripts
+4. **Autonomous Execution**: When you provide a prompt, the agent:
+   - Analyzes your request
+   - Decides which tools (if any) to use
+   - Makes function calls automatically
+   - Displays function call information including function name and arguments
+5. **Response Handling**: The agent can return:
+   - Text responses for general queries
+   - Function call information when tools are used
+   - Verbose token usage statistics (when `--verbose` flag is used)
 
 ## Configuration
+
+### Model Selection
 
 The agent uses the `gemini-2.5-flash` model by default. You can modify the model in `main.py`:
 
 ```python
 response = client.models.generate_content(
     model="gemini-2.5-flash",  # Change this to use a different model
-    ...
+    contents=prompt,
+    config=config,
 )
 ```
+
+### System Prompt
+
+The agent's behavior is guided by a system prompt that defines its capabilities. You can customize the `systemPrompt` variable in `main.py` to change how the agent interprets and responds to requests:
+
+```python
+systemPrompt: str = """
+You are a helpful AI coding agent.
+
+When a user asks a question or makes a request, make a function call plan. You can perform the following operations if needed:
+
+- list files and directories
+- Read the content of a file
+- write to a file (create or update)
+- Run a Python file with optional arguments
+
+All paths you provide should be relative to the working directory. You don't need to provide working directory in the function call, as it is ingested automatically for security purposes.
+"""
+```
+
+### Function Schemas
+
+Each function module exports a schema (e.g., `schema_get_files_info`) that defines the function's interface for the Gemini API. These schemas use `types.FunctionDeclaration` to specify:
+- Function name
+- Description
+- Parameters and their types
+- Required parameters
+
+The schemas are automatically registered with the agent via the `availableFunctions` tool configuration.
 
 ## Error Handling
 
 The project includes comprehensive error handling:
 
-- Invalid file paths
-- Missing directories
-- File read/write errors
-- API connection issues
-- Malformed responses
+- **File Operations**: Invalid file paths, missing directories, file read/write errors
+- **API Operations**: Connection issues, malformed responses, missing usage metadata
+- **Function Execution**: Timeout errors, invalid Python files, execution exceptions
+- **Path Security**: Directory traversal attempts are blocked with error messages
+
+When errors occur, the agent will display appropriate error messages, and function calls will return error information that the agent can use to adjust its approach.

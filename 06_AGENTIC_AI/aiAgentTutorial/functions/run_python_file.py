@@ -1,5 +1,6 @@
-import os
 import subprocess
+import os
+from google.genai import types
 
 
 def run_python_file(
@@ -53,3 +54,25 @@ STDERR: {processOutput.stderr}
     print(f"finalReponse: \n{finalReponse}")
 
     return finalReponse
+
+
+schema_run_python_file = types.FunctionDeclaration(
+    name="run_python_file",
+    description="Run a python file with python3 interpreter. Accepts additional CLI args as an optional array.",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "file_path": types.Schema(
+                type=types.Type.STRING,
+                description="The file to run, relative to the working directory.",
+            ),
+            "args": types.Schema(
+                type=types.Type.ARRAY,
+                description="An optional array of strings to be used as the CLI args for the python file.",
+                items=types.Schema(
+                    type=types.Type.STRING,
+                ),
+            ),
+        },
+    ),
+)

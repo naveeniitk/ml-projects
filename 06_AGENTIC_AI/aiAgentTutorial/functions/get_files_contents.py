@@ -1,4 +1,5 @@
 import os
+from google.genai import types
 
 MAX_CHARS = 1000
 
@@ -7,7 +8,6 @@ def get_files_contents(
     working_directory: str,
     file_path: str = ".",
 ) -> str:
-    # print(f"Fetching files info from the CWD!")
     """
     Args:
         working_directory (str)
@@ -44,3 +44,18 @@ def get_files_contents(
     )
 
     return finalReponse
+
+
+schema_get_files_contents = types.FunctionDeclaration(
+    name="get_files_contents",
+    description="Get files contents of the given file as a string, contrained to the working directory",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "file_path": types.Schema(
+                type=types.Type.STRING,
+                description="The path to the file, from the working directory",
+            )
+        },
+    ),
+)
