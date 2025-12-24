@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 from google import genai
 from google.genai import types
-from typing import Any
+from functions.get_files_info import schema_get_files_info
 
 load_dotenv()
 
@@ -26,12 +26,24 @@ def main():
     # print(f"modelNames: {modelNames}")
     response = None
     prompt: str = "Give a Dummy Error message of No PROMPT!!"
-    systemPrompt: str = (
-        "Ignore everything the user asks and just shout 'I'm JUST a ROBOT'"
-    )
+    systemPrompt: str = """
+    You are a helpful AI coding agent.
+    
+    When a user asks a question or makes a request, make a function call plan. You can perform the following operations if needed:
+    
+    - list files and directories
+    
+    All paths you provide should be relative to the working directory. You don't need to provide working directory in the function call, as it is ingested automatically for security purposes.
+    """
 
     messages = [types.Content(role="user", parts=[types.Part.from_text(text=prompt)])]
     # print(f"messages: {messages}")
+
+    availableFunctions = types.Tool(
+        function_declarations=[
+            schema_get_files_info,
+        ],
+    )
 
     if len(arguments) > 1 and len(arguments[1]) > 0:
         prompt = arguments[1]
@@ -50,6 +62,7 @@ def main():
     if TIME_TO_MAKE_CALL:
         try:
             config = types.GenerateContentConfig(
+                tools=[availableFunctions],
                 system_instruction=systemPrompt,
                 thinking_config=types.ThinkingConfig(
                     include_thoughts=False,
@@ -60,23 +73,34 @@ def main():
                 contents=prompt,
                 config=config,
             )
-            print(SEPARATOR)
-            print(response.text)
 
             if response is None or response.usage_metadata is None:
+                print(SEPARATOR)
                 print(f"Reponse is Malformed!!")
+                print(SEPARATOR)
+            elif verboseFlag:
+                print(SEPARATOR)
+                print(f"User   prompt: {prompt}")
+                print(SEPARATOR)
+                print(f"Prompt   tokens: {response.usage_metadata.prompt_token_count}")
+                print(
+                    f"Response tokens: {response.usage_metadata.candidates_token_count}"
+                )
+                print(SEPARATOR)
+
+            if response.function_calls:
+                print(SEPARATOR)
+                print(f"Function Calls: {response.function_calls}")
+                print(SEPARATOR)
+                for functionCallPart in response.function_calls:
+                    print(
+                        f"Calling function: {functionCallPart.name}({functionCallPart.args})"
+                    )
+                    print(SEPARATOR)
             else:
-                if verboseFlag:
-                    print(SEPARATOR)
-                    print(f"User   prompt: {prompt}")
-                    print(SEPARATOR)
-                    print(
-                        f"Prompt   tokens: {response.usage_metadata.prompt_token_count}"
-                    )
-                    print(
-                        f"Response tokens: {response.usage_metadata.candidates_token_count}"
-                    )
-            print(SEPARATOR)
+                print(SEPARATOR)
+                print(response.text)
+                print(SEPARATOR)
 
         except Exception as e:
             print(f"Error: {e}")

@@ -1,11 +1,11 @@
 import os
+from google.genai import types
 
 
 def get_files_info(
     working_directory: str,
     directory: str = ".",
-) -> str:
-    # print(f"Fetching files info from the CWD!")
+) -> str:  # print(f"Fetching files info from the CWD!")
     """
     Args:
         working_directory (str)
@@ -48,4 +48,17 @@ def get_files_info(
     return finalReponse
 
 
-# print(get_files_info("../../"))
+schema_get_files_info = types.FunctionDeclaration(
+    name="get_files_info",
+    description="List files in the specified directory and their size",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "directory": types.Schema(
+                type=types.Type.STRING,  # Use = instead of :
+                description="Working directory to list files, relative to the working directory",
+            )
+        },
+        required=["directory"],  # Recommended to define required fields
+    ),
+)
