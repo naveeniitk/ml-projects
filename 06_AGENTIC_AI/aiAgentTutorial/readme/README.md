@@ -142,6 +142,12 @@ The image above demonstrates the agent successfully:
 - Displaying function call information
 - Executing file system operations
 
+Here's an example of the function execution output after integration with Gemini:
+
+![Function Execution Output](image-5.png)
+
+This image shows the actual output from `call_function` after it executes the requested operations, displaying the results returned to the Gemini API for further processing.
+
 ### Running the Calculator
 
 The calculator example can be run independently:

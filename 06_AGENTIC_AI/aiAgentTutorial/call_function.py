@@ -61,7 +61,7 @@ def call_function(
             types.Part.from_function_response(
                 name=function_call_part.name,
                 response={
-                    "response": response,
+                    "response": "\n" + response + "\n",
                 },
             )
         ],

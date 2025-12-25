@@ -40,7 +40,11 @@ def get_files_contents(
             finalReponse = f"Exception in reading file: '{absFilePath}'\n"
 
     finalReponse = (
-        ("=" * maxLenOfFileInfo) + "\n" + str(finalReponse) + ("=" * maxLenOfFileInfo)
+        ("=" * maxLenOfFileInfo)
+        + "\n"
+        + str(finalReponse)
+        + "\n"
+        + ("=" * maxLenOfFileInfo)
     )
 
     return finalReponse
