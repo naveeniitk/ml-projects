@@ -6,6 +6,7 @@ from functions.write_file import schema_write_file
 from functions.run_python_file import schema_run_python_file
 from functions.get_files_info import schema_get_files_info
 from functions.get_files_contents import schema_get_files_contents
+from call_function import call_function
 from dotenv import load_dotenv
 
 
@@ -101,9 +102,11 @@ def main():
                 print(f"Function Calls: {response.function_calls}")
                 print(SEPARATOR)
                 for functionCallPart in response.function_calls:
-                    print(
-                        f"Calling function: {functionCallPart.name}({functionCallPart.args})"
+                    # print(f"Calling: {functionCallPart.name}({functionCallPart.args})")
+                    callResponse = call_function(
+                        function_call_part=functionCallPart, verbose=verboseFlag
                     )
+                    print(callResponse)
                     print(SEPARATOR)
             else:
                 print(SEPARATOR)

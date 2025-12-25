@@ -17,7 +17,7 @@ This project implements an AI agent that can:
 
 ### Core Functions
 
-The agent has access to four main tools:
+The agent has access to four main tools, which are dispatched through the `call_function.py` module:
 
 1. **`get_files_info`** - Lists files and directories in a specified path
 
@@ -97,8 +97,8 @@ python main.py "<your_prompt>" [--verbose] [1]
 **Arguments:**
 
 - `prompt` (required): The instruction or question for the AI agent
-- `--verbose` (optional): Show detailed token usage information
-- `1` (optional): Set to `1` to actually make the API call (default: skip call)
+- `--verbose` (optional): Show detailed token usage information and full function arguments
+- `1` (optional): Set to `1` to actually make the API call (default: skip call to save API usage during testing)
 
 **Examples:**
 
@@ -122,7 +122,13 @@ Function Calls: [...]
 Calling function: get_files_info({'directory': 'calculator'})
 ```
 
-This shows which tools the agent decided to use and with what arguments.
+Or with verbose mode disabled:
+```
+Function Calls: [...]
+ - Calling function: get_files_info
+```
+
+This shows which tools the agent decided to use and with what arguments. The verbose flag controls whether function arguments are displayed.
 
 ### Example Output
 
@@ -150,6 +156,7 @@ python main.py "3 + 5 * 2"
 ```
 aiAgentTutorial/
 ├── main.py                 # Main agent script with API integration
+├── call_function.py        # Function dispatcher for executing agent tools
 ├── functions/              # Agent tools/functions
 │   ├── get_files_info.py  # List directory contents + schema
 │   ├── get_files_contents.py  # Read file contents + schema
@@ -163,6 +170,7 @@ aiAgentTutorial/
 │   └── tests.py          # Calculator tests
 ├── tests.py              # Unit tests for agent functions
 ├── pyproject.toml        # Project configuration
+├── uv.lock               # Dependency lock file (if using uv)
 └── readme/               # Documentation
     └── README.md         # This file
 ```
@@ -170,6 +178,12 @@ aiAgentTutorial/
 **Note:** Each function in the `functions/` directory exports both:
 - The actual function implementation (e.g., `get_files_info()`)
 - A schema declaration (e.g., `schema_get_files_info`) for API registration
+
+The `call_function.py` module acts as a dispatcher that:
+- Receives function call requests from the Gemini API
+- Routes calls to the appropriate function implementation
+- Wraps responses in the proper `types.Content` format for the API
+- Handles errors and unknown function calls gracefully
 
 ## Testing
 
@@ -196,7 +210,9 @@ The agent is built using Google's Gemini API with function calling capabilities:
 - **Function Schemas**: Each tool function exports a `FunctionDeclaration` schema that defines its interface
 - **Tool Registration**: Schemas are collected into a `types.Tool` object and passed to the API via `GenerateContentConfig`
 - **System Instructions**: The agent receives a system prompt that guides its behavior and capabilities
+- **Thinking Config**: The agent uses `ThinkingConfig` with `include_thoughts=False` to control internal reasoning display
 - **Function Calling**: The API can autonomously decide to call functions based on the user's prompt
+- **Function Dispatcher**: The `call_function.py` module handles routing function calls to the appropriate implementation
 - **Response Handling**: The code checks for `function_calls` in the response and displays them, or shows the text response
 
 This architecture allows the agent to autonomously decide when and how to use tools without explicit instructions.
@@ -235,11 +251,17 @@ The agent functions include security measures:
    - Analyzes your request
    - Decides which tools (if any) to use
    - Makes function calls automatically
-   - Displays function call information including function name and arguments
-5. **Response Handling**: The agent can return:
+   - Displays function call information including function name and arguments (full arguments shown only in verbose mode)
+5. **Function Execution**: The `call_function.py` module:
+   - Routes function calls to the appropriate implementation
+   - Executes functions within the working directory context
+   - Returns formatted responses wrapped in `types.Content` objects
+   - Handles unknown functions gracefully with error messages
+6. **Response Handling**: The agent can return:
    - Text responses for general queries
    - Function call information when tools are used
    - Verbose token usage statistics (when `--verbose` flag is used)
+   - Function execution results wrapped in tool response format
 
 ## Configuration
 
@@ -254,6 +276,8 @@ response = client.models.generate_content(
     config=config,
 )
 ```
+
+The agent automatically lists all available models when it starts, showing the total count of available models from your Gemini API account.
 
 ### System Prompt
 
@@ -274,6 +298,14 @@ All paths you provide should be relative to the working directory. You don't nee
 """
 ```
 
+### Working Directory
+
+The agent operates within a controlled working directory (set to `"calculator"` by default in `call_function.py`). All file operations are restricted to this directory for security. You can modify the `workingDirectory` variable in `call_function.py` to change the working directory:
+
+```python
+workingDirectory: str = "calculator"  # Change this to use a different working directory
+```
+
 ### Function Schemas
 
 Each function module exports a schema (e.g., `schema_get_files_info`) that defines the function's interface for the Gemini API. These schemas use `types.FunctionDeclaration` to specify:
@@ -292,5 +324,6 @@ The project includes comprehensive error handling:
 - **API Operations**: Connection issues, malformed responses, missing usage metadata
 - **Function Execution**: Timeout errors, invalid Python files, execution exceptions
 - **Path Security**: Directory traversal attempts are blocked with error messages
+- **Unknown Functions**: If an unrecognized function is called, the agent returns an error message indicating the function is unknown
 
-When errors occur, the agent will display appropriate error messages, and function calls will return error information that the agent can use to adjust its approach.
+When errors occur, the agent will display appropriate error messages, and function calls will return error information that the agent can use to adjust its approach. Error messages are formatted and returned as part of the function response, allowing the agent to handle them gracefully in subsequent interactions.
