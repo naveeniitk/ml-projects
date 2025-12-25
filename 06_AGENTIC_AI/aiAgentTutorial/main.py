@@ -42,9 +42,6 @@ def main():
     All paths you provide should be relative to the working directory. You don't need to provide working directory in the function call, as it is ingested automatically for security purposes.
     """
 
-    messages = [types.Content(role="user", parts=[types.Part.from_text(text=prompt)])]
-    # print(f"messages: {messages}")
-
     availableFunctions = types.Tool(
         function_declarations=[
             schema_get_files_info,
@@ -63,6 +60,9 @@ def main():
 
     print(f"PROMPT: {prompt}")
 
+    messages = [types.Content(role="user", parts=[types.Part.from_text(text=prompt)])]
+    # print(f"messages: {messages}")
+
     TIME_TO_MAKE_CALL = 0
     if len(arguments) > 3 and arguments[3] == "1":
         TIME_TO_MAKE_CALL = 1
@@ -70,6 +70,9 @@ def main():
     print(f"TIME_TO_MAKE_CALL: {TIME_TO_MAKE_CALL}")
     if TIME_TO_MAKE_CALL:
         try:
+
+            ITERATION = 20
+
             config = types.GenerateContentConfig(
                 tools=[availableFunctions],
                 system_instruction=systemPrompt,
@@ -77,41 +80,49 @@ def main():
                     include_thoughts=False,
                 ),
             )
-            response = client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=prompt,
-                config=config,
-            )
-
-            if response is None or response.usage_metadata is None:
-                print(SEPARATOR)
-                print(f"Reponse is Malformed!!")
-                print(SEPARATOR)
-            elif verboseFlag:
-                print(SEPARATOR)
-                print(f"User   prompt: {prompt}")
-                print(SEPARATOR)
-                print(f"Prompt   tokens: {response.usage_metadata.prompt_token_count}")
-                print(
-                    f"Response tokens: {response.usage_metadata.candidates_token_count}"
+            for i in range(ITERATION):
+                response = client.models.generate_content(
+                    model="gemini-2.5-flash",
+                    contents=messages,
+                    config=config,
                 )
-                print(SEPARATOR)
 
-            if response.function_calls:
-                print(SEPARATOR)
-                print(f"Function Calls: {response.function_calls}")
-                print(SEPARATOR)
-                for functionCallPart in response.function_calls:
-                    # print(f"Calling: {functionCallPart.name}({functionCallPart.args})")
-                    callResponse = call_function(
-                        function_call_part=functionCallPart, verbose=verboseFlag
-                    )
-                    print(callResponse)
+                if response is None or response.usage_metadata is None:
                     print(SEPARATOR)
-            else:
-                print(SEPARATOR)
-                print(response.text)
-                print(SEPARATOR)
+                    print(f"Reponse is Malformed!!")
+                    print(SEPARATOR)
+                    return
+
+                if verboseFlag:
+                    print(SEPARATOR)
+                    print(f"User   prompt: {prompt}")
+                    print(SEPARATOR)
+                    print(
+                        f"Prompt   tokens: {response.usage_metadata.prompt_token_count}"
+                    )
+                    print(
+                        f"Response tokens: {response.usage_metadata.candidates_token_count}"
+                    )
+                    print(SEPARATOR)
+
+                if response.candidates:
+                    for candidate in response.candidates:
+                        if (candidate is None) or (candidate.content is None):
+                            continue
+                        messages.append(candidate.content)
+
+                if response.function_calls:
+                    for functionCallPart in response.function_calls:
+                        result = call_function(
+                            function_call_part=functionCallPart,
+                            verbose=verboseFlag,
+                        )
+                        messages.append(result)
+                else:
+                    print(SEPARATOR)
+                    print(response.text)
+                    print(SEPARATOR)
+                    return
 
         except Exception as e:
             print(f"Error: {e}")
