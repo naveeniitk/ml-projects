@@ -1,6 +1,6 @@
 # AI Agents
 
-A Python tutorial project demonstrating how to build an AI agent using Google's Gemini API. This project showcases how an AI agent can interact with the file system through custom tools/functions, enabling it to read, write, and explore files autonomously.
+A Python project demonstrating how to build an AI agent using Google's Gemini API. This project showcases how an AI agent can interact with the file system through custom tools/functions, enabling it to read, write, and explore files autonomously.
 
 ## Overview
 
